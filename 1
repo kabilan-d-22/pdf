@@ -1,0 +1,283 @@
+________________________________________one__________________________________________
+import turtle
+import time
+screen = turtle.Screen()
+screen.setup(700, 700)
+screen.title("Line and Circle Drawing")
+pen = turtle.Turtle()
+pen.speed(0)
+pen.hideturtle()
+pen.penup()
+
+PIXEL_SIZE = 10
+
+def set_pixel(x, y, color="black"):
+    pen.goto(x, y)
+    pen.dot(PIXEL_SIZE, color)
+
+def draw_line(x1, y1, x2, y2, color="blue"):
+    dx = x2 - x1
+    dy = y2 - y1
+    steps = int(max(abs(dx), abs(dy)))
+    x_inc = dx / steps
+    y_inc = dy / steps
+    x, y = x1, y1
+    for _ in range(steps + 1):
+        set_pixel(round(x), round(y), color)
+        x += x_inc
+        y += y_inc
+        time.sleep(0.005)
+
+def draw_circle(cx, cy, r, color="green"):
+    x = 0
+    y = r
+    p = 1 - r
+
+    def plot_points(xc, yc, x, y):
+        points = [
+            (xc + x, yc + y), (xc - x, yc + y),
+            (xc + x, yc - y), (xc - x, yc - y),
+            (xc + y, yc + x), (xc - y, yc + x),
+            (xc + y, yc - x), (xc - y, yc - x)
+        ]
+        for px, py in points:
+            set_pixel(px, py, color)
+
+    plot_points(cx, cy, x, y)
+
+    while x < y:
+        x += 1
+        if p < 0:
+            p += 2 * x + 1
+        else:
+            y -= 1
+            p += 2 * (x - y) + 1
+        plot_points(cx, cy, x, y)
+        time.sleep(0.01)
+
+screen.setworldcoordinates(-350, -350, 350, 350)
+
+draw_line(-150, -150, 150, 150)
+
+draw_circle(0, 0, 100)
+
+screen.exitonclick()
+________________________________________two__________________________________________
+
+def plot_line_bresenham(x1, y1, x2, y2, grid_size=10):
+    grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+    dx = x2 - x1
+    dy = y2 - y1
+    x, y = x1, y1
+    p = 2 * dy - dx
+    while x <= x2:
+        if 0 <= x < grid_size and 0 <= y < grid_size:
+            grid[grid_size - 1 - y][x] = 'X'
+        x += 1
+        if p < 0:
+            p = p + 2 * dy
+        else:
+            y += 1
+            p = p + 2 * (dy - dx)
+    print(f"Bresenham's Line from ({x1}, {y1}) to ({x2}, {y2}):\n")
+    for row in grid:
+        print(" ".join(row))
+
+
+def plot_line_dda(x1, y1, x2, y2, grid_size=10):
+    grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+    dx = x2 - x1
+    dy = y2 - y1
+    steps = max(abs(dx), abs(dy))
+    x_inc = dx / steps
+    y_inc = dy / steps
+    x, y = x1, y1
+    for _ in range(steps + 1):
+        xi = int(round(x))
+        yi = int(round(y))
+        if 0 <= xi < grid_size and 0 <= yi < grid_size:
+            grid[grid_size - 1 - yi][xi] = 'X'
+        x += x_inc
+        y += y_inc
+    print(f"DDA Line from ({x1}, {y1}) to ({x2}, {y2}):\n")
+    for row in grid:
+        print(" ".join(row))
+
+
+plot_line_bresenham(2, 2, 8, 6)
+print("\n" + "-"*40 + "\n")
+plot_line_dda(1, 7, 7, 3)
+________________________________________three__________________________________________
+
+def plot_circle_points(grid, xc, yc, x, y, grid_size):
+    points = [
+        (xc + x, yc + y), (xc - x, yc + y),
+        (xc + x, yc - y), (xc - x, yc - y),
+        (xc + y, yc + x), (xc - y, yc + x),
+        (xc + y, yc - x), (xc - y, yc - x)
+    ]
+    for px, py in points:
+        if 0 <= px < grid_size and 0 <= py < grid_size:
+
+
+def plot_circle_bresenham(xc, yc, r, grid_size=20):
+    grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+    x, y = 0, r
+    p = 3 - 2 * r
+
+    while x <= y:
+        plot_circle_points(grid, xc, yc, x, y, grid_size)
+        if p < 0:
+            p += 4 * x + 6
+        else:
+            y -= 1
+            p += 4 * (x - y) + 10
+        x += 1
+
+    return grid
+
+
+def plot_circle_midpoint(xc, yc, r, grid_size=20):
+    grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+    x, y = 0, r
+    p = 1 - r
+
+    while x <= y:
+        plot_circle_points(grid, xc, yc, x, y, grid_size)
+        if p < 0:
+            p += 2 * x + 3
+        else:
+            y -= 1
+            p += 2 * (x - y) + 5
+        x += 1
+
+    return grid
+
+
+def print_grid(grid, title):
+    print(f"\n{title}")
+    for row in reversed(grid):  
+        print(" ".join(row))
+
+
+def draw_circle(center, radius, grid_size=20):
+    xc, yc = center
+    print(f"Center: ({xc}, {yc}) | Radius: {radius} | Grid: {grid_size}x{grid_size}")
+
+    grid_bresenham = plot_circle_bresenham(xc, yc, radius, grid_size)
+    print_grid(grid_bresenham, "Bresenham's Circle Drawing")
+
+    print("\n" + "-" * 40)
+
+    grid_midpoint = plot_circle_midpoint(xc, yc, radius, grid_size)
+    print_grid(grid_midpoint, "Mid-Point Circle Drawing")
+
+    print("\n" + "-" * 40 + "\n")
+
+draw_circle(center=(10, 10), radius=6, grid_size=21)
+________________________________________five__________________________________________
+
+import matplotlib.pyplot as plt
+
+X_MIN, Y_MIN = 0, 0
+X_MAX, Y_MAX = 10, 10
+
+INSIDE, LEFT, RIGHT, BOTTOM, TOP = 0, 1, 2, 4, 8
+
+def compute_code(x, y):
+    code = INSIDE
+    if x < X_MIN: code |= LEFT
+    elif x > X_MAX: code |= RIGHT
+    if y < Y_MIN: code |= BOTTOM
+    elif y > Y_MAX: code |= TOP
+    return code
+
+def cohen_sutherland_line_clip(x1, y1, x2, y2):
+    code1, code2 = compute_code(x1, y1), compute_code(x2, y2)
+    while True:
+        if code1 == 0 and code2 == 0:     
+            return (x1, y1, x2, y2)
+        elif (code1 & code2) != 0:        
+            return None
+        else:
+            code_out = code1 if code1 != 0 else code2
+            if code_out & TOP:
+                x = x1 + (x2 - x1) * (Y_MAX - y1) / (y2 - y1)
+                y = Y_MAX
+            elif code_out & BOTTOM:
+                x = x1 + (x2 - x1) * (Y_MIN - y1) / (y2 - y1)
+                y = Y_MIN
+            elif code_out & RIGHT:
+                y = y1 + (y2 - y1) * (X_MAX - x1) / (x2 - x1)
+                x = X_MAX
+            elif code_out & LEFT:
+                y = y1 + (y2 - y1) * (X_MIN - x1) / (x2 - x1)
+                x = X_MIN
+
+            if code_out == code1:
+                x1, y1 = x, y
+                code1 = compute_code(x1, y1)
+            else:
+                x2, y2 = x, y
+                code2 = compute_code(x2, y2)
+
+def draw(x1, y1, x2, y2):
+    plt.plot([X_MIN, X_MAX, X_MAX, X_MIN, X_MIN],
+             [Y_MIN, Y_MIN, Y_MAX, Y_MAX, Y_MIN], 'k-')  
+    plt.plot([x1, x2], [y1, y2], 'b--')  
+    res = cohen_sutherland_line_clip(x1, y1, x2, y2)
+    if res:
+        plt.plot([res[0], res[2]], [res[1], res[3]], 'r-', lw=2)
+    plt.axis([-2, 12, -2, 12])
+    plt.grid(True)
+    plt.show()
+
+draw(2, 3, 12, 5)
+________________________________________six__________________________________________
+
+import pygame, sys
+
+pygame.init()
+
+WIDTH, HEIGHT = 600, 400
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+WHITE = (255, 255, 255)
+RED = (255,   0,   0)
+BLUE = (0,   0, 255)
+
+points = [(100, 300), (300, 50), (500, 300)]
+drag = None
+
+def bezier_quad(p0, p1, p2, t):
+    u = 1 - t
+    x = u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0]
+    y = u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]
+    return int(x), int(y)
+
+def draw():
+    screen.fill(WHITE)
+    pygame.draw.lines(screen, RED, False, points, 2)
+    for p in points:
+        pygame.draw.circle(screen, RED, p, 6)
+    for i in range(101):
+        t = i / 100
+        pygame.draw.circle(screen, BLUE, bezier_quad(points[0], points[1], points[2], t), 2)
+    pygame.display.flip()
+
+while True:
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if e.type == pygame.MOUSEBUTTONDOWN:
+            for i, p in enumerate(points):
+                if abs(e.pos[0] - p[0]) < 8 and abs(e.pos[1] - p[1]) < 8:
+                    drag = i
+        if e.type == pygame.MOUSEBUTTONUP:
+            drag = None
+        if e.type == pygame.MOUSEMOTION and drag is not None:
+            points[drag] = e.pos
+
+    draw()
+
