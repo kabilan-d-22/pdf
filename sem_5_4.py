@@ -1,10 +1,10 @@
 import math
 
 # ---------- Helper Function ----------
-def display_points(points, label):
-    print(f"\n{label}:")
-    for i, p in enumerate(points):
-        print(f"Point {i+1}: {tuple(round(v, 2) for v in p)}")
+def display_points(points, title):
+    print(f"\n{title}")
+    for i in range(len(points)):
+        print(f"Point {i+1}: {points[i]}")
 
 # ---------- 2D Transformations ----------
 def translate_2d(points, tx, ty):
@@ -117,3 +117,4 @@ if __name__ == "__main__":
 
     sheared_3d = shear_3d(points_3d, shxy=0.3, shyz=0.2, shzx=0.4)
     display_points(sheared_3d, "After Shearing (shxy=0.3, shyz=0.2, shzx=0.4)")
+
